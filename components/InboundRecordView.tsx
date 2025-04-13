@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { InboundRecord } from '@/lib/types';
 import { Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';

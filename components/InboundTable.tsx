@@ -1,24 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InsuranceDetail, TableFilters } from '@/lib/types';
-import { insuranceDetailsApi } from '@/lib/supabase';
-import { format, parseISO } from 'date-fns';
-import InsuranceRecordDetail from './InsuranceRecordDetail';
-import CsvImport from './CsvImport';
-import AddInsuranceRecord from './AddInsuranceRecord';
+import { InboundRecord, TableFilters } from '@/lib/types';
+import { inboundApi } from '@/lib/supabase';
+import InboundRecordDetail from './InboundRecordDetail';
+import AddInboundRecord from './AddInboundRecord';
 
-export default function InsuranceTable() {
-  const [records, setRecords] = useState<InsuranceDetail[]>([]);
+export default function InboundTable() {
+  const [records, setRecords] = useState<InboundRecord[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRecord, setSelectedRecord] = useState<InsuranceDetail | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<InboundRecord | null>(null);
   const [recordDetailOpen, setRecordDetailOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteAllConfirmOpen, setDeleteAllConfirmOpen] = useState(false);
@@ -29,13 +27,13 @@ export default function InsuranceTable() {
     searchTerm: '',
   });
 
-  // Wrap fetchRecords in useCallback to prevent recreation on every render
+  // Fetch records based on current filters
   const fetchRecords = useCallback(async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const { data, count } = await insuranceDetailsApi.getAll(
+      const { data, count } = await inboundApi.getAll(
         filters.page,
         filters.pageSize,
         filters.searchTerm
@@ -50,7 +48,7 @@ export default function InsuranceTable() {
     }
   }, [filters.page, filters.pageSize, filters.searchTerm]);
 
-  // Fetch data on initial load and when filters or fetchRecords change
+  // Fetch data on initial load and when filters change
   useEffect(() => {
     fetchRecords();
   }, [fetchRecords]);
@@ -74,7 +72,7 @@ export default function InsuranceTable() {
     setDeleteLoading(true);
     
     try {
-      await insuranceDetailsApi.delete(id);
+      await inboundApi.delete(id);
       fetchRecords();
       setDeleteConfirmOpen(false);
     } catch (err: Error | unknown) {
@@ -88,24 +86,13 @@ export default function InsuranceTable() {
     setDeleteLoading(true);
     
     try {
-      await insuranceDetailsApi.deleteAll();
+      await inboundApi.deleteAll();
       fetchRecords();
       setDeleteAllConfirmOpen(false);
     } catch (err: Error | unknown) {
       setError(err instanceof Error ? err.message : 'Failed to delete all records');
     } finally {
       setDeleteLoading(false);
-    }
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString || dateString === '') return '-';
-    try {
-      // Convert to a readable date format
-      const date = parseISO(dateString);
-      return format(date, 'MMM d, yyyy');
-    } catch {
-      return dateString;
     }
   };
 
@@ -117,14 +104,13 @@ export default function InsuranceTable() {
         <CardHeader className="bg-gradient-to-r from-primary/5 to-background pb-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <CardTitle className="text-primary/90 text-xl">Insurance CRM</CardTitle>
+              <CardTitle className="text-primary/90 text-xl">Inbound Appointments</CardTitle>
               <CardDescription>
-                Manage patient insurance details
+                Manage patient appointments and insurance information
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-2 items-center">
-              <AddInsuranceRecord onSuccess={fetchRecords} />
-              <CsvImport onSuccess={fetchRecords} />
+              <AddInboundRecord onSuccess={fetchRecords} />
               <Dialog open={deleteAllConfirmOpen} onOpenChange={setDeleteAllConfirmOpen}>
                 <DialogTrigger asChild>
                   <Button variant="destructive" size="sm" className="flex items-center gap-1.5">
@@ -140,7 +126,7 @@ export default function InsuranceTable() {
                   <DialogHeader>
                     <DialogTitle>Delete All Records</DialogTitle>
                     <DialogDescription>
-                      Are you sure you want to delete all insurance records? This action cannot be undone.
+                      Are you sure you want to delete all inbound records? This action cannot be undone.
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
@@ -156,7 +142,7 @@ export default function InsuranceTable() {
           
           <div className="mt-4 relative">
             <Input
-              placeholder="Search by name, phone, member ID, or insurance company..."
+              placeholder="Search by appointment number, phone, address, or insurance info..."
               value={filters.searchTerm}
               onChange={handleSearch}
               className="pr-9"
@@ -195,37 +181,37 @@ export default function InsuranceTable() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/30 hover:bg-muted/50">
-                  <TableHead className="w-[200px]">Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead className="hidden md:table-cell">Insurance</TableHead>
-                  <TableHead className="hidden md:table-cell">Member ID</TableHead>
-                  <TableHead className="hidden sm:table-cell">Appointment</TableHead>
-                  <TableHead className="hidden lg:table-cell">Eligibility</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow>
+                  <TableHead className="w-[150px]">Appointment #</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="hidden md:table-cell">Type</TableHead>
+                  <TableHead className="hidden md:table-cell">Phone</TableHead>
+                  <TableHead className="hidden lg:table-cell">Insurance</TableHead>
+                  <TableHead className="hidden lg:table-cell">Call Status</TableHead>
+                  <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index}>
-                      <TableCell colSpan={7} className="h-14">
+                      <TableCell colSpan={8} className="h-14">
                         <div className="w-full h-4 bg-muted/50 rounded animate-pulse"></div>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : records.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground/50">
-                          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                          <polyline points="14 2 14 8 20 8"></polyline>
-                          <path d="M12 18v-6"></path>
-                          <path d="M8 18v-1"></path>
-                          <path d="M16 18v-3"></path>
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="9" cy="7" r="4"></circle>
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
-                        <span>No records found. Import data or add a new record.</span>
+                        <span>No records found. Add a new inbound record.</span>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -241,65 +227,73 @@ export default function InsuranceTable() {
                       }}
                     >
                       <TableCell className="font-medium whitespace-nowrap">
-                        {record.name}
+                        {record.appointment_number}
                       </TableCell>
-                      <TableCell className="font-mono text-sm whitespace-nowrap">
-                        {record.phone_number}
+                      <TableCell className="whitespace-nowrap">
+                        {record.name || '-'}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {record.appointment_date}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {record.insurance_company || '-'}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell font-mono text-xs">
-                        {record.member_id}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell whitespace-nowrap text-sm">
-                        {formatDate(record.appointment_date)}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <span 
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            record.eligibility_status?.toLowerCase() === 'active' 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' 
-                              : record.eligibility_status?.toLowerCase() === 'inactive'
-                                ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
-                                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                          }`}
-                        >
-                          {record.eligibility_status || 'Unknown'}
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          record.type === 'New' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {record.type}
                         </span>
                       </TableCell>
+                      <TableCell className="hidden md:table-cell font-mono text-sm">
+                        {record.phone}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {record.insurance_policy ? (
+                          <span className="inline-flex items-center">
+                            <svg className="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            {record.insurance_name || 'Yes'}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center">
+                            <svg className="w-4 h-4 mr-1 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            No
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-end gap-1">
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            className="h-8 w-8"
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-muted-foreground hover:text-foreground"
                             onClick={() => {
                               setSelectedRecord(record);
                               setRecordDetailOpen(true);
                             }}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                              <path d="m15 5 4 4"></path>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                              <path d="M12 20h9"></path>
+                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                             </svg>
-                            <span className="sr-only">Edit</span>
+                            Edit
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                            className="h-8 w-8 text-destructive border-destructive hover:bg-destructive/10"
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-muted-foreground hover:text-red-600"
                             onClick={() => {
                               setSelectedRecord(record);
                               setDeleteConfirmOpen(true);
                             }}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                               <path d="M3 6h18"></path>
                               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
                               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
                             </svg>
-                            <span className="sr-only">Delete</span>
+                            Delete
                           </Button>
                         </div>
                       </TableCell>
@@ -309,93 +303,92 @@ export default function InsuranceTable() {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-        
-        <CardFooter className="flex flex-col sm:flex-row justify-between items-center p-4 gap-4 border-t">
-          <div className="text-sm text-muted-foreground">
-            Showing {records.length} of {totalRecords} {totalRecords === 1 ? 'record' : 'records'}
-          </div>
           
           {totalPages > 1 && (
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => filters.page > 1 && handlePageChange(filters.page - 1)} 
-                    className={filters.page <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                    aria-disabled={filters.page <= 1}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  // Show pagination centered around current page
-                  let pageNum = i + 1;
-                  if (totalPages > 5) {
-                    if (filters.page > 3) {
-                      pageNum = filters.page + i - 2;
-                    }
-                    if (filters.page > totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    }
-                  }
+            <div className="py-4 flex items-center justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => handlePageChange(Math.max(1, filters.page - 1))}
+                      className={filters.page <= 1 ? 'pointer-events-none opacity-50' : ''}
+                    />
+                  </PaginationItem>
                   
-                  if (pageNum <= totalPages && pageNum > 0) {
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    // Logic to show pages around the current page
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (filters.page <= 3) {
+                      pageNum = i + 1;
+                    } else if (filters.page >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = filters.page - 2 + i;
+                    }
+                    
                     return (
                       <PaginationItem key={pageNum}>
-                        <PaginationLink 
-                          isActive={pageNum === filters.page}
+                        <PaginationLink
                           onClick={() => handlePageChange(pageNum)}
+                          isActive={filters.page === pageNum}
                         >
                           {pageNum}
                         </PaginationLink>
                       </PaginationItem>
                     );
-                  }
-                  return null;
-                })}
-                
-                <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => filters.page < totalPages && handlePageChange(filters.page + 1)} 
-                    className={filters.page >= totalPages ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                    aria-disabled={filters.page >= totalPages}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => handlePageChange(Math.min(totalPages, filters.page + 1))}
+                      className={filters.page >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           )}
-        </CardFooter>
+        </CardContent>
       </Card>
       
-      {/* Record detail dialog */}
-      <InsuranceRecordDetail 
-        record={selectedRecord} 
-        open={recordDetailOpen} 
-        onOpenChange={setRecordDetailOpen}
-        onSuccess={fetchRecords}
-      />
-      
-      {/* Delete confirmation dialog */}
-      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Record</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete {selectedRecord?.name}&apos;s record? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
-            <Button 
-              variant="destructive" 
-              onClick={() => selectedRecord && handleDelete(selectedRecord.id)} 
-              disabled={deleteLoading}
-            >
-              {deleteLoading ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {selectedRecord && (
+        <>
+          <Dialog open={recordDetailOpen} onOpenChange={setRecordDetailOpen}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <InboundRecordDetail 
+                record={selectedRecord}
+                onUpdate={() => {
+                  fetchRecords();
+                  setRecordDetailOpen(false);
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Record</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete this record? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => handleDelete(selectedRecord.id)} 
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? 'Deleting...' : 'Delete'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 } 

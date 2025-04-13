@@ -10,8 +10,8 @@ export interface InsuranceDetail {
   subscriber?: string;
   plan?: string;
   eligibility_status?: string;
-  annual_maximum?: number | undefined;
-  deductible?: number | undefined;
+  annual_maximum?: string;
+  deductible?: string;
   coverage?: string;
   coverage_status?: string;
   waiting_period?: string;
@@ -55,4 +55,26 @@ export interface CSVRecord {
   downgrades_exclusions?: string;
   pre_authorization?: string;
   contact_inquiries?: string;
+  called_status?: 'not called' | 'call failed' | 'call succeeded';
+}
+
+export interface InboundRecord {
+  id: string;
+  name?: string;
+  appointment_number: string;
+  appointment_date: string;
+  previous_appointment_date?: string;
+  type: string;
+  dob: string;
+  phone: string;
+  address: string;
+  insurance_policy: boolean;
+  insurance_name?: string;
+  member_id?: string;
+  group_number?: string;
+  call_status?: string;
+  call_transfer_status?: string;
+  transcript?: string;
+  summary?: string;
+  created_at: string;
 } 

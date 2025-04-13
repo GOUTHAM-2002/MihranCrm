@@ -102,18 +102,18 @@ export default function InboundTable() {
     <div className="space-y-4">
       <Card className="shadow-lg border-t-4 border-t-primary overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-background pb-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle className="text-primary/90 text-xl">Inbound Appointments</CardTitle>
               <CardDescription>
                 Manage patient appointments and insurance information
               </CardDescription>
             </div>
-            <div className="flex flex-wrap gap-2 items-center">
+            <div className="flex flex-wrap gap-2 items-center mt-2 sm:mt-0">
               <AddInboundRecord onSuccess={fetchRecords} />
               <Dialog open={deleteAllConfirmOpen} onOpenChange={setDeleteAllConfirmOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="destructive" size="sm" className="flex items-center gap-1.5">
+                  <Button variant="destructive" size="sm" className="flex items-center gap-1.5 h-9 px-3 text-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M3 6h18"></path>
                       <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
@@ -122,16 +122,16 @@ export default function InboundTable() {
                     Delete All
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Delete All Records</DialogTitle>
-                    <DialogDescription>
+                <DialogContent className="max-w-[95vw] sm:max-w-md p-3 sm:p-6">
+                  <DialogHeader className="mb-2 sm:mb-4">
+                    <DialogTitle className="text-lg">Delete All Records</DialogTitle>
+                    <DialogDescription className="text-sm opacity-80">
                       Are you sure you want to delete all inbound records? This action cannot be undone.
                     </DialogDescription>
                   </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setDeleteAllConfirmOpen(false)}>Cancel</Button>
-                    <Button variant="destructive" onClick={handleDeleteAll} disabled={deleteLoading}>
+                  <DialogFooter className="mt-4 sm:mt-6">
+                    <Button variant="outline" onClick={() => setDeleteAllConfirmOpen(false)} className="h-9 px-3 sm:px-4 text-sm">Cancel</Button>
+                    <Button variant="destructive" onClick={handleDeleteAll} disabled={deleteLoading} className="h-9 px-3 sm:px-4 text-sm">
                       {deleteLoading ? 'Deleting...' : 'Delete All'}
                     </Button>
                   </DialogFooter>
@@ -182,14 +182,14 @@ export default function InboundTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[150px]">Appointment #</TableHead>
+                  <TableHead className="w-[120px]">App #</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="hidden xs:table-cell">Date</TableHead>
                   <TableHead className="hidden md:table-cell">Type</TableHead>
                   <TableHead className="hidden md:table-cell">Phone</TableHead>
                   <TableHead className="hidden lg:table-cell">Insurance</TableHead>
                   <TableHead className="hidden lg:table-cell">Call Status</TableHead>
-                  <TableHead className="w-[120px]">Actions</TableHead>
+                  <TableHead className="w-[80px] text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -226,13 +226,13 @@ export default function InboundTable() {
                         setRecordDetailOpen(true);
                       }}
                     >
-                      <TableCell className="font-medium whitespace-nowrap">
+                      <TableCell className="font-medium whitespace-nowrap text-sm">
                         {record.appointment_number}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap text-sm">
                         {record.name || '-'}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">
+                      <TableCell className="hidden xs:table-cell whitespace-nowrap text-sm">
                         {record.appointment_date}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
@@ -263,37 +263,37 @@ export default function InboundTable() {
                         )}
                       </TableCell>
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                            className="h-8 w-8 p-0 md:w-auto md:px-2 md:py-1 text-muted-foreground hover:text-foreground"
                             onClick={() => {
                               setSelectedRecord(record);
                               setRecordDetailOpen(true);
                             }}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M12 20h9"></path>
                               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                             </svg>
-                            Edit
+                            <span className="hidden md:inline ml-1">Edit</span>
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-muted-foreground hover:text-red-600"
+                            className="h-8 w-8 p-0 md:w-auto md:px-2 md:py-1 text-muted-foreground hover:text-red-600"
                             onClick={() => {
                               setSelectedRecord(record);
                               setDeleteConfirmOpen(true);
                             }}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 6h18"></path>
                               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
                               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
                             </svg>
-                            Delete
+                            <span className="hidden md:inline ml-1">Delete</span>
                           </Button>
                         </div>
                       </TableCell>
@@ -356,7 +356,7 @@ export default function InboundTable() {
       {selectedRecord && (
         <>
           <Dialog open={recordDetailOpen} onOpenChange={setRecordDetailOpen}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-3 sm:p-6">
               <InboundRecordDetail 
                 record={selectedRecord}
                 onUpdate={() => {
@@ -368,19 +368,20 @@ export default function InboundTable() {
           </Dialog>
           
           <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete Record</DialogTitle>
-                <DialogDescription>
+            <DialogContent className="max-w-[95vw] sm:max-w-md p-3 sm:p-6">
+              <DialogHeader className="mb-2 sm:mb-4">
+                <DialogTitle className="text-lg">Delete Record</DialogTitle>
+                <DialogDescription className="text-sm opacity-80">
                   Are you sure you want to delete this record? This action cannot be undone.
                 </DialogDescription>
               </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+              <DialogFooter className="mt-4 sm:mt-6">
+                <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)} className="h-9 px-3 sm:px-4 text-sm">Cancel</Button>
                 <Button 
                   variant="destructive" 
                   onClick={() => handleDelete(selectedRecord.id)} 
                   disabled={deleteLoading}
+                  className="h-9 px-3 sm:px-4 text-sm"
                 >
                   {deleteLoading ? 'Deleting...' : 'Delete'}
                 </Button>
